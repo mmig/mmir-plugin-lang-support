@@ -1,0 +1,35 @@
+{
+  "name": "mmir-plugin-lang-support",
+  "version": "1.0.0",
+  "description": "tools for querying supported languages (ASR and TTS) and voices (TTS) by Nuance SpeechKit",
+  "main": "./index.js",
+  "types": "index.d.ts",
+  "directories": {
+    "lib": "./www"
+  },
+  "scripts": {
+    "build": "npm run build-ts && npm run build-metadata",
+    "build-ts": "tsc",
+    "build-metadata": "createplugincompat ./ && pluginexport ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab-cos.b.dfki.de/mmir/mmir-plugin-lang-support.git"
+  },
+  "keywords": [
+    "speech",
+    "asr",
+    "tts",
+    "language"
+  ],
+  "author": "russa",
+  "license": "MIT",
+  "devDependencies": {
+    "mmir-lib": "git+https://gitlab-cos.b.dfki.de/mmir/dev_mmir-lib.git#develop/webpack",
+    "mmir-plugin-exports": "git+https://gitlab-cos.b.dfki.de/mmir/mmir-plugin-exports.git",
+    "typescript": "^3.3.3333"
+  },
+  "peerDependencies": {
+    "mmir-lib": "git+https://gitlab-cos.b.dfki.de/mmir/dev_mmir-lib.git#develop/webpack"
+  }
+}
