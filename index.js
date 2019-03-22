@@ -1,5 +1,5 @@
 
 module.exports = {
-  languageSupport: require('./www/languageSupport.js'),
+  languageSupport: require('./www/langSupportUtils.js'),
   installFiles: require('./install.js')
 }
