@@ -232,7 +232,8 @@ var LanguageSupport = /** @class */ (function () {
         //1. try to get voice by name:
         var re = new RegExp('^' + query + '$', 'i');
         var voiceEntry = this.ttsLanguages.find(function (voiceData) {
-            if (re.test(_this.voiceSelectFilter(voiceData[_this.ttsName]))) {
+            var name = voiceData[_this.ttsName];
+            if (re.test(name) || re.test(_this.voiceSelectFilter(name))) {
                 return true;
             }
             return false;
