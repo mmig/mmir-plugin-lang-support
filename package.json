@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab-cos.b.dfki.de/mmir/mmir-plugin-lang-support.git"
+    "url": "https://github.com/mmig/mmir-plugin-lang-support.git"
   },
   "keywords": [
     "speech",
@@ -25,11 +25,8 @@
   "author": "russa",
   "license": "MIT",
   "devDependencies": {
-    "mmir-lib": "git+https://gitlab-cos.b.dfki.de/mmir/dev_mmir-lib.git#develop/webpack",
-    "mmir-plugin-exports": "git+https://gitlab-cos.b.dfki.de/mmir/mmir-plugin-exports.git",
+    "mmir-lib": "git+https://github.com/mmig/mmir-lib.git",
+    "mmir-plugin-exports": "git+https://github.com/mmig/mmir-plugin-exports.git",
     "typescript": "^3.3.3333"
-  },
-  "peerDependencies": {
-    "mmir-lib": "git+https://gitlab-cos.b.dfki.de/mmir/dev_mmir-lib.git#develop/webpack"
   }
 }
