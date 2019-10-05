@@ -1,7 +1,7 @@
 {
   "name": "mmir-plugin-lang-support",
   "version": "1.1.0",
-  "description": "tools for querying supported languages (ASR and TTS) and voices (TTS) by Nuance SpeechKit",
+  "description": "tools for querying supported languages (ASR and TTS) and voices (TTS) for mmir speech plugins",
   "main": "./index.js",
   "types": "index.d.ts",
   "directories": {
@@ -20,7 +20,9 @@
     "speech",
     "asr",
     "tts",
-    "language"
+    "language",
+    "mmir",
+    "plugin"
   ],
   "author": "russa",
   "license": "MIT",
