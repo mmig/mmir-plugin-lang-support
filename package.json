@@ -27,7 +27,7 @@
   "author": "russa",
   "license": "MIT",
   "devDependencies": {
-    "mmir-lib": "^6.0.0",
+    "mmir-lib": "^6.1.0",
     "mmir-plugin-exports": "^1.4.2",
     "typescript": "^3.6.5"
   }
