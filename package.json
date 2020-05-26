@@ -4,12 +4,20 @@
   "description": "tools for querying supported languages (ASR and TTS) and voices (TTS) for mmir speech plugins",
   "main": "./index.js",
   "types": "index.d.ts",
+  "typesVersions": {
+    ">=3.6": {
+      "www/*": [
+        "www/ts3.6/*"
+      ]
+    }
+  },
   "directories": {
     "lib": "./www"
   },
   "scripts": {
-    "build": "npm run build-ts && npm run build-metadata",
+    "build": "npm run build-ts && npm run downlevel-dts && npm run build-metadata",
     "build-ts": "tsc",
+    "downlevel-dts": "dtsdownlevel www",
     "build-metadata": "createplugincompat ./ && pluginexport ./"
   },
   "repository": {
@@ -28,8 +36,8 @@
   "license": "MIT",
   "devDependencies": {
     "mmir-lib": "^6.1.0",
-    "mmir-plugin-exports": "^1.4.2",
-    "typescript": "^3.6.5"
+    "mmir-plugin-exports": "^1.5.0",
+    "typescript": "^3.9.3"
   },
   "peerDependencies": {
     "mmir-lib": "^6.1.0"
