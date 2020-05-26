@@ -30,7 +30,8 @@
     "tts",
     "language",
     "mmir",
-    "plugin"
+    "plugin",
+    "mmir plugin"
   ],
   "author": "russa",
   "license": "MIT",
