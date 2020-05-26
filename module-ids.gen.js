@@ -6,7 +6,7 @@
 
 var _id = "mmir-plugin-lang-support";
 var _paths = {
-  "mmir-plugin-lang-support/langSupportUtils.d.ts": "www/langSupportUtils.d.ts",
+  "mmir-plugin-lang-support/langSupportUtils.d.ts": "www/ts3.6/langSupportUtils.d.ts",
   "mmir-plugin-lang-support/langSupportUtils": "www/langSupportUtils.js",
   "mmir-plugin-lang-support/langSupportUtils.js.map": "www/langSupportUtils.js.map",
   "mmir-plugin-lang-support": "index.js"
