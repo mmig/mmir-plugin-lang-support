@@ -5,7 +5,7 @@
   "main": "./index.js",
   "types": "index.d.ts",
   "typesVersions": {
-    ">=3.6": {
+    ">=3.8": {
       "www/*": [
         "www/ts3.6/*"
       ]
@@ -17,7 +17,7 @@
   "scripts": {
     "build": "npm run build-ts && npm run downlevel-dts && npm run build-metadata",
     "build-ts": "tsc",
-    "downlevel-dts": "dtsdownlevel www",
+    "downlevel-dts": "dtsdownlevel --force www",
     "build-metadata": "createplugincompat ./ && pluginexport ./"
   },
   "repository": {
@@ -36,9 +36,9 @@
   "author": "russa",
   "license": "MIT",
   "devDependencies": {
-    "mmir-lib": "^6.1.0",
-    "mmir-plugin-exports": "^1.5.0",
-    "typescript": "^3.9.3"
+    "mmir-lib": "^6.2.0",
+    "mmir-plugin-exports": "^2.4.0",
+    "typescript": "^4.1.3"
   },
   "peerDependencies": {
     "mmir-lib": "^6.1.0"
