@@ -8,6 +8,10 @@
 
 tools for querying supported languages (ASR and TTS) and voices (TTS)
 
-NOTE: for usage in cordova-plugins, copy /www or /src to appropriate
-      location in plugin, e.g. via the exported
-      function `installFiles(srcDirType: "src" | "www", targetDir: string, callback(err: Error | null))`
+NOTE: for usage in cordova-plugins, copy `/www` or `/src` to the appropriate
+      location in plugin, e.g. via the exported function
+      ```javascript
+      const installFiles = require('mmir-plugin-lang-support');
+
+      installFiles(srcDirType: "src" | "www", targetDir: string, callback(err: Error | null))
+      ```
