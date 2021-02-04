@@ -2,6 +2,8 @@
 // import { asrLanguages as asrLanguageList , ttsLanguages as ttsLanguageList } from './languages';
 import { VoiceDetails } from 'mmir-lib';
 
+/** transformation for raw data to gender string */
+export type GenderParseFunc = (gender: string) => 'female' | 'male';
 // const genderType = {
 // 	'F': 'female',	//map: list-entry -> type
 // 	'M': 'male',	//map: list-entry -> type
@@ -9,10 +11,15 @@ import { VoiceDetails } from 'mmir-lib';
 // 	'male': 'M'		//map: type -> list-entry
 // }
 
-export type GenderParseFunc = (gender: string) => 'female' | 'male';
-
 export type Gender = "female" | "male";
-export type VoiceResult = {voice: VoiceDetails, language: string, filter: string};
+export interface LabeledVoiceDetails extends VoiceDetails {
+  label: string;
+}
+export interface VoiceResult {
+  voice: LabeledVoiceDetails;
+  language: string;
+  filter: string;
+}
 
 
 /**
@@ -30,16 +37,27 @@ export function normalizeCode(code: string): string {
   });
 }
 
+/** metadata definition for how to access a data row/object for specific fields */
 export interface LanguageSupportIndex {
 
-  //[0] Language, [1]	6 char *, [2]	Voice, [3]	M / F
-  ttsLabel: number|string;
-  ttsCode: number|string;
-  ttsName: number|string;
-  ttsGender: number|string;
+  // e.g. [0] Language, [1]	6 char *, [2]	Voice, [3]	M / F
 
-  //	[0] Language, [1]	6 char *, [2]	Frequency
+  /** name/index for TTS (language) code field */
+  ttsCode: number|string;
+  /** name/index for TTS (voice) name field */
+  ttsName: number|string;
+  /** name/index for TTS (voice) gender field */
+  ttsGender: number|string;
+  /** name/index for (OPTIONAL) TTS (voice) label field */
+  ttsLabel?: number|string;
+  /** name/index for (OPTIONAL) TTS (voice) "is locally available" field */
+  ttsLocal?: number|string;
+
+  // e.g. [0] Language, [1]	6 char *, [2]	Frequency
+
+  /** name/index for ASR (language) label field */
   asrLabel: number|string;
+  /** name/index for ASR (language) code field */
   asrCode: number|string;
 }
 
@@ -47,16 +65,54 @@ export type LanguageResourceEntry = string[] | {[field: string]: string};
 
 export class LanguageSupport {
 
-  ttsLabel: number|string;
+  /** name/index for TTS (language) code field */
   ttsCode: number|string;
+  /** name/index for TTS (voice) name field */
   ttsName: number|string;
+  /** name/index for TTS (voice) gender field */
   ttsGender: number|string;
+  /** name/index for (OPTIONAL) TTS (voice) label field */
+  ttsLabel?: number|string;
+  /** name/index for (OPTIONAL) TTS (voice) "is locally available" field */
+  ttsLocal?: number|string;
 
+  /** name/index for ASR (language) label field */
   asrLabel: number|string;
+  /** name/index for ASR (language) code field */
   asrCode: number|string;
 
-  hasLabel: boolean = false;
+  /**
+   * if TTS voices are locally (without network/internet) availabled:
+   * Can be set manually, to indicate local availibility for all voices.
+   *
+   * If `listIndices: LanguageSupportIndex`
+   *
+   * If unset (i.e. `undefined`), no information regarding local
+   * availability is available; it should be assumed, that network/internet resources
+   * may be required for the voice(s).
+   */
+  isLocal: boolean | undefined;
 
+  /**
+   * if TTS voices do have an additional information about local availability:
+   * detected during initialization, when `listIndices: LanguageSupportIndex`
+   * has a `ttsLocal` field.
+   */
+  readonly hasLocal: boolean;
+
+  /**
+   * if TTS voices do have an additional (human readable) name:
+   * detected during initialization, when `listIndices: LanguageSupportIndex`
+   * has a `ttsLabel` field.
+   */
+  readonly hasLabel: boolean;
+
+  /**
+   * transformation function for TTS voice name, used when querying for a voice;
+   * can be set via constructor.
+   *
+   * DEFAULT: use voice name as is (i.e. unchanged).
+   */
   readonly voiceSelectFilter: (voiceName: string) => string;
 
   constructor(
@@ -66,28 +122,34 @@ export class LanguageSupport {
     listIndices: LanguageSupportIndex,
     voiceSelectFilter?: (voiceName: string) => string
   ){
+    this.hasLabel = false;
+    this.hasLocal = false;
     for(const n in listIndices){
       if(n === 'ttsLabel' && typeof listIndices[n] !== 'undefined'){
         this.hasLabel = true;
+      }
+      if(n === 'ttsLocal' && typeof listIndices[n] !== 'undefined'){
+        this.hasLocal = true;
       }
       this[n] = listIndices[n];
     }
     this.voiceSelectFilter = voiceSelectFilter? voiceSelectFilter : (s: string) => s;
   }
 
-  ttsProjection: {[type: string]: (entry: LanguageResourceEntry, index?: number, list?: LanguageResourceEntry[]) => string|VoiceDetails} = {
+  ttsProjection: {[type: string]: (entry: LanguageResourceEntry, index?: number, list?: LanguageResourceEntry[]) => string|LabeledVoiceDetails} = {
     'code': (item: LanguageResourceEntry, _index: number, _list: LanguageResourceEntry[]): string => {
       return item[this.ttsCode];
     },
     'label': (item: LanguageResourceEntry, _index: number, _list: LanguageResourceEntry[]): string => {
       return item[this.ttsLabel];
     },
-    'voice': (item: LanguageResourceEntry, _index: number, _list: LanguageResourceEntry[]): VoiceDetails => {
+    'voice': (item: LanguageResourceEntry, _index: number, _list: LanguageResourceEntry[]): LabeledVoiceDetails => {
       return {
         name: item[this.ttsName],
-        // label: this.hasLabel? item[this.ttsLabel] : item[this.ttsName], //TODO?
+        label: this.hasLabel? item[this.ttsLabel] : item[this.ttsName],
         language: item[this.ttsCode],
-        gender: this.parseGender( item[this.ttsGender] )
+        gender: this.parseGender( item[this.ttsGender] ),
+        local: this.hasLocal? item[this.ttsLocal] : this.isLocal
       }
     },
     'voiceName': (item: LanguageResourceEntry, _index: number, _list: LanguageResourceEntry[]): string => {
@@ -95,7 +157,16 @@ export class LanguageSupport {
     }
   }
 
+  /** get list of supported TTS language codes */
+  getTTS(type: "code"): string[];
+  /** get list of supported TTS languages (i.e. language labels) */
+  getTTS(type: "label"): string[];
+  /** get list of supported TTS voice details (OPTIONAL: filter for language (code) and/or voice gender) */
+  getTTS(type: "voice", langCode?: string, gender?: Gender): LabeledVoiceDetails[];
+  /** get list of supported TTS voices (OPTIONAL: filter for language (code) and/or voice gender) */
+  getTTS(type: "voiceName", langCode?: string, gender?: Gender): string[];
   /**
+   * query for TTS languages for voices
    *
    * @param type {"code" | "label" | "voice" | "voiceName"}
    * 					type of returned list: language code, language name, voice information, voice-name
@@ -108,7 +179,7 @@ export class LanguageSupport {
    * @returns {VoiceInfo} list of strings, depending on type parameter; in case of "voice" a list of voice-objects:
    * 				{name: STRING, language: STRING, gender: Gender}
    */
-  getTTS(type: "code" | "label" | "voice" | "voiceName", langCode?: string, gender?: Gender): (string | VoiceDetails)[] {
+  getTTS(type: "code" | "label" | "voice" | "voiceName", langCode?: string, gender?: Gender): (string | LabeledVoiceDetails)[] {
 
     const isVoiceQuery = type === 'voice' || type === 'voiceName';
     let list = isVoiceQuery? this.ttsLanguages : this.ttsLanguages.filter((item, index, array) => {
@@ -141,6 +212,7 @@ export class LanguageSupport {
   }
 
   /**
+   * query for ASR language
    *
    * @param type "code" | "label"
    * 					type of returned list: language code, language name
@@ -172,7 +244,7 @@ export class LanguageSupport {
    *
    *  @returns {Function} a sorting function that can be used with Array.sort()
    */
-  createBestVoiceSort(langCode: string, filter?: Gender): (v1: VoiceDetails, v2: VoiceDetails) => number {
+  createBestVoiceSort(langCode: string, filter?: Gender): (v1: LabeledVoiceDetails, v2: LabeledVoiceDetails) => number {
 
     langCode = normalizeCode(langCode);
     var hasCountry = /^\w+-\w+$/.test(langCode);
@@ -200,9 +272,35 @@ export class LanguageSupport {
         return v1.language.localeCompare(v2.language);
       }
 
+
+      if(v1.language !== v2.language){
+
+        if(hasCountry){
+          if(v1.language === langCode){
+            return -1;
+          } else if(v2.language === langCode){
+            return 1;
+          }
+        }
+
+        return v1.language.localeCompare(v2.language);
+      }
+
       return v1.name.localeCompare(v2.name);
     }
   };
+
+  /**
+   * if cached results for best voice / selected voice should be used:
+   * should be disabled, if underlying TTS voice list is created dynamically/changes.
+   *
+   * @default true
+   *
+   * @see getBestVoice
+   * @see ttsSelectVoiceFor
+   * @see resetVoiceQueryCache
+   */
+  public useVoiceQueryCache: boolean = true;
 
   /**
    * cached result of last invocation of getBestVoice()
@@ -233,6 +331,16 @@ export class LanguageSupport {
   protected _lastSelectedVoice: VoiceResult = null;
 
   /**
+   * reset cached results for best matching voice and last selected voice
+   *
+   * @see useVoiceQueryCache
+   */
+  public resetVoiceQueryCache(): void {
+    this._lastBestVoice = null;
+    this._lastSelectedVoice = null;
+  }
+
+  /**
    * get "best" matching voice for a language:
    * will try to select a voice with the specified gender (if specified) and country-code (if specified).
    *
@@ -259,7 +367,7 @@ export class LanguageSupport {
     //normalize FALSY values for gender query:
     gender = gender || void(0);
 
-    if(this._lastBestVoice && this._lastBestVoice.language === langCode && this._lastBestVoice.filter === gender){
+    if(this.useVoiceQueryCache && this._lastBestVoice && this._lastBestVoice.language === langCode && this._lastBestVoice.filter === gender){
       // console.log('  ######## using cached _lastBestVoice ', _lastBestVoice);
       return this._lastBestVoice;
     }
@@ -268,9 +376,9 @@ export class LanguageSupport {
     const langParts = langCode.split(/[-_]/);
     const lang = langParts[0];
 
-    const list = this.getTTS('voice', lang) as VoiceDetails[];
+    const list = this.getTTS('voice', lang) as LabeledVoiceDetails[];
 
-    if(list.length > 0){
+    if(this.useVoiceQueryCache && list.length > 0){
       list.sort(this.createBestVoiceSort(langCode, gender));
       this._lastBestVoice = {
         voice: list[0],
@@ -289,13 +397,13 @@ export class LanguageSupport {
    * @param  {string} query the voice name or filter-query; if FALSY the first matching voice for langCode will be used
    * @return {Voice} the voice matching the query (may be a "best match", i.e. not exactly match the query)
    */
-  ttsSelectVoiceFor(langCode: string, query?: Gender | string): VoiceDetails {
+  ttsSelectVoiceFor(langCode: string, query?: Gender | string): LabeledVoiceDetails {
 
     //normalize FALSY values for query & langCode:
     query = query || void(0);
     langCode = langCode || '';
 
-    if(this._lastSelectedVoice && this._lastSelectedVoice.language === langCode && this._lastSelectedVoice.filter === query){
+    if(this.useVoiceQueryCache && this._lastSelectedVoice && this._lastSelectedVoice.language === langCode && this._lastSelectedVoice.filter === query){
       // console.log('  ######## using cached _lastSelectedVoice ', _lastSelectedVoice);
       return this._lastSelectedVoice.voice;
     }
@@ -311,9 +419,9 @@ export class LanguageSupport {
       return false;
     });
 
-    let voice: VoiceDetails;
+    let voice: LabeledVoiceDetails;
     if(voiceEntry){
-      voice = this.ttsProjection.voice(voiceEntry) as VoiceDetails;
+      voice = this.ttsProjection.voice(voiceEntry) as LabeledVoiceDetails;
     } else{
       //2. get best matching voice for langCode & query
       const bestMatch = this.getBestVoice(langCode, query as Gender);
@@ -322,7 +430,7 @@ export class LanguageSupport {
       }
     }
 
-    if(voice){
+    if(this.useVoiceQueryCache && voice){
       this._lastSelectedVoice = {
         voice: voice,
         language: langCode,
@@ -333,10 +441,3 @@ export class LanguageSupport {
     return voice;
   }
 }
-
-// export function ttsLanguages (){ return getTTS('code');};
-// export function ttsVoices(langCode?: string, gender?: Gender): VoiceDetails[] { return getTTS('voice', langCode, gender) as VoiceDetails[];};
-// export function ttsVoiceNames(langCode?: string, gender?: Gender): string[] { return getTTS('voiceName', langCode, gender) as string[];};
-// export const ttsBestVoiceFor = getBestVoice;
-// export function asrLanguages(): string [] { return getASR('code');};
-// export const ttsSelectVoice = ttsSelectVoiceFor;
